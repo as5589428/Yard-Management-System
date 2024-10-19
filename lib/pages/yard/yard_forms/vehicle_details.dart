@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'vahan_details_form.dart'; // Make sure to import the VahanDetailsForm
+import 'package:flutter_application_1/pages/yard/yard_forms/vehicle_photo/photo_entry.dart';
 
 class VehicleDetailsForm extends StatefulWidget {
   @override
@@ -10,7 +10,7 @@ class _VehicleDetailsFormState extends State<VehicleDetailsForm> {
   final _formKey = GlobalKey<FormState>();
 
   // Add controllers for each vehicle details field
-  final _customerNameController = TextEditingController(); // Added for Customer Name
+  final _customerNameController = TextEditingController();
   final _engineNumberController = TextEditingController();
   final _chassisNumberController = TextEditingController();
   final _colorController = TextEditingController();
@@ -57,7 +57,7 @@ class _VehicleDetailsFormState extends State<VehicleDetailsForm> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Vehicle Details"),
-        backgroundColor: Colors.blue[300],
+        backgroundColor: Colors.green[300], // Changed to green
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -67,7 +67,7 @@ class _VehicleDetailsFormState extends State<VehicleDetailsForm> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildTextField("Customer Name", _customerNameController), // Added Customer Name field
+                _buildTextField("Customer Name", _customerNameController),
                 _buildTextField("Engine Number", _engineNumberController),
                 _buildTextField("Chassis Number", _chassisNumberController),
                 _buildTextField("Color", _colorController),
@@ -98,13 +98,10 @@ class _VehicleDetailsFormState extends State<VehicleDetailsForm> {
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: Row(
                         children: [
-                          // Checklist Label
                           Expanded(
                             flex: 3,
                             child: Text(item["label"], style: TextStyle(fontSize: 16)),
                           ),
-                          
-                          // "No" option with red cross
                           Expanded(
                             child: GestureDetector(
                               onTap: () {
@@ -119,8 +116,6 @@ class _VehicleDetailsFormState extends State<VehicleDetailsForm> {
                               ),
                             ),
                           ),
-                          
-                          // "Yes" option with green checkmark
                           Expanded(
                             child: GestureDetector(
                               onTap: () {
@@ -149,14 +144,14 @@ class _VehicleDetailsFormState extends State<VehicleDetailsForm> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => VahanDetailsForm(),
+                            builder: (context) => PhotoEntryPage(),
                           ),
                         );
                       }
                     },
-                    child: Text('Next'),
+                    child: Text('Next', style: TextStyle(color: Colors.white)), // Changed text color to white
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
+                      backgroundColor: const Color.fromARGB(255, 79, 238, 145), // Button background color can remain blue
                       padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
                     ),
                   ),

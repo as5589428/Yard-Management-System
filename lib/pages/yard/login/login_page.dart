@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../panels/yard_panel_page.dart';
 import '../signup/signup_page.dart';
-import 'package:lottie/lottie.dart'; // Import Lottie package
+import 'package:lottie/lottie.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -15,8 +15,7 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
 
-  // Replace this URL with your backend login endpoint
-  final String loginUrl = 'http://192.168.0.194:5000/yardowner/login';
+  final String loginUrl = 'https://yms-backend.onrender.com/yardowner/login';
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +41,20 @@ class _LoginPageState extends State<LoginPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                SizedBox(height: 40),
+                CircleAvatar(
+                  radius: 50,
+                  backgroundColor: Colors.white,
+                  child: ClipOval(
+                    child: Image.asset(
+                      'assets/logo-white.jpg', // Replace with your logo asset
+                      width: 90,
+                      height: 90,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 20),
                 Text(
                   "Welcome Back!",
                   style: TextStyle(
@@ -78,9 +91,8 @@ class _LoginPageState extends State<LoginPage> {
                     ? Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // Lottie animation
-                   
-                          SizedBox(height: 10), // Space between animation and text
+                          // Lottie.asset('assets/car_loading.json', width: 100, height: 100),
+                          SizedBox(height: 10),
                           Text(
                             "Loading...",
                             style: TextStyle(
@@ -182,7 +194,6 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  // Login function
   void _handleLogin(BuildContext context) async {
     setState(() {
       _isLoading = true;
@@ -191,7 +202,6 @@ class _LoginPageState extends State<LoginPage> {
     final yardName = _yardNameController.text.trim();
     final password = _passwordController.text.trim();
 
-
     if (yardName.isEmpty || password.isEmpty) {
       _showSnackBar(context, 'Please enter both yard name and password', Colors.red);
       setState(() {
@@ -199,10 +209,8 @@ class _LoginPageState extends State<LoginPage> {
       });
       return;
     }
-  
 
     try {
-      // Send login request
       final response = await http.post(
         Uri.parse(loginUrl),
         headers: {"Content-Type": "application/json"},
@@ -213,20 +221,19 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       if (response.statusCode == 200) {
-        // Parse the token from the response
         final responseData = json.decode(response.body);
         final token = responseData['token'];
-// Show a loading animation
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return Center(child: Lottie.asset('assets/car_loading.json')); // Ensure this path is correct
-      },
-    );
-  // Wait for 2 seconds before proceeding
-  await Future.delayed(Duration(seconds: 5));
-        // Store token securely, then navigate to YardPanelPage
+
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return Center(child: Lottie.asset('assets/car_loading.json'));
+          },
+        );
+
+        await Future.delayed(Duration(seconds: 5));
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => YardPanelPage()),
@@ -243,7 +250,6 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  // Snackbar to show messages
   void _showSnackBar(BuildContext context, String message, Color color) {
     final snackBar = SnackBar(
       content: Text(message),

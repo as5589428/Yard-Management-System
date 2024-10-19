@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert'; // For jsonEncode
-import 'package:lottie/lottie.dart'; // Import Lottie
-import '../Dashboard/yard_management_dashboard.dart'; // Your dashboard screen
-import '../sign-up/signup_screen.dart'; // Your signup screen
-import '../../../../api_Service/shared_preference.dart'; // Import your SharedPreferenceManager
+import 'dart:convert';
+import 'package:lottie/lottie.dart';
+import '../Dashboard/yard_management_dashboard.dart';
+import '../sign-up/signup_screen.dart';
+import '../../../../api_Service/shared_preference.dart';
 
 class AdminLoginScreen extends StatefulWidget {
   @override
@@ -30,55 +30,90 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          SingleChildScrollView(
-            child: Padding(
-              padding: EdgeInsets.all(50.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset(
-                    'assets/logo-dark.jpg', // Your logo path
-                    height: 120,
-                  ),
-                  SizedBox(height: 40),
-                  Text(
-                    'Admin Login',
-                    style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Sign in to access your account',
-                    style: TextStyle(color: Colors.grey[600], fontSize: 14),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: 40),
-                  Form(
-                    key: _formKey,
-                    child: Column(
-                      children: <Widget>[
-                        _buildUserIdTF(),
-                        SizedBox(height: 20.0),
-                        _buildPasswordTF(),
-                        _buildForgotPasswordBtn(),
-                        SizedBox(height: 20.0),
-                        _buildLoginBtn(),
-                        _buildSignupLink(context),
-                      ],
-                    ),
-                  ),
-                ],
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Colors.blue[800]!, Colors.blue[400]!],
               ),
             ),
           ),
-          // Fullscreen loading animation
+          SafeArea(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SizedBox(height: 40),
+                    Center(
+                      child: CircleAvatar(
+                        radius: 50,
+                        backgroundColor: Colors.white,
+                        child: ClipOval(
+                          child: Image.asset(
+                            'assets/logo-white.jpg',
+                            width: 90,
+                            height: 90,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 40),
+                    Card(
+                      elevation: 8,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.all(24.0),
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: <Widget>[
+                              Text(
+                                'Admin Login',
+                                style: TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue[800],
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                'Sign in to access your account',
+                                style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                                textAlign: TextAlign.center,
+                              ),
+                              SizedBox(height: 32),
+                              _buildUserIdTF(),
+                              SizedBox(height: 16.0),
+                              _buildPasswordTF(),
+                              _buildForgotPasswordBtn(),
+                              SizedBox(height: 24.0),
+                              _buildLoginBtn(),
+                              SizedBox(height: 16),
+                              _buildSignupLink(context),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
           if (_isLoading)
             Container(
-              color: Colors.white.withOpacity(0.8), // Slightly transparent background
+              color: Colors.black.withOpacity(0.5),
               child: Center(
                 child: Lottie.asset(
-                  'assets/car_loading.json', // Add your Lottie file here
+                  'assets/car_loading.json',
                   width: 200,
                   height: 200,
                 ),
@@ -86,23 +121,26 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
             ),
         ],
       ),
-      backgroundColor: Colors.blue[50],
     );
   }
 
   Widget _buildUserIdTF() {
     return TextFormField(
       controller: _userIdController,
-      keyboardType: TextInputType.text, // Change to text if user ID is alphanumeric
+      keyboardType: TextInputType.text,
+      style: TextStyle(color: Colors.blue[800]),
       decoration: InputDecoration(
-        hintText: 'User ID',
-        filled: true,
-        fillColor: Colors.grey[200],
+        labelText: 'User ID',
+        hintText: 'Enter your User ID',
+        prefixIcon: Icon(Icons.person_outline, color: Colors.blue[800]),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.blue[800]!),
         ),
-        prefixIcon: Icon(Icons.person_outline),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.blue[800]!, width: 2),
+        ),
       ),
       validator: (value) {
         if (value == null || value.isEmpty) {
@@ -117,24 +155,29 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
     return TextFormField(
       controller: _passwordController,
       obscureText: !_isPasswordVisible,
+      style: TextStyle(color: Colors.blue[800]),
       decoration: InputDecoration(
-        hintText: 'Password',
-        filled: true,
-        fillColor: Colors.grey[200],
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide.none,
-        ),
-        prefixIcon: Icon(Icons.lock_outline),
+        labelText: 'Password',
+        hintText: 'Enter your password',
+        prefixIcon: Icon(Icons.lock_outline, color: Colors.blue[800]),
         suffixIcon: IconButton(
           icon: Icon(
             _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+            color: Colors.blue[800],
           ),
           onPressed: () {
             setState(() {
               _isPasswordVisible = !_isPasswordVisible;
             });
           },
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.blue[800]!),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.blue[800]!, width: 2),
         ),
       ),
       validator: (value) {
@@ -147,7 +190,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
   }
 
   Widget _buildForgotPasswordBtn() {
-    return Container(
+    return Align(
       alignment: Alignment.centerRight,
       child: TextButton(
         onPressed: () {
@@ -157,44 +200,48 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
         },
         child: Text(
           'Forgot Password?',
-          style: TextStyle(color: Colors.blue),
+          style: TextStyle(color: Colors.blue[800], fontWeight: FontWeight.bold),
         ),
       ),
     );
   }
 
   Widget _buildLoginBtn() {
-    return SizedBox(
-      height: 50,
-      child: ElevatedButton(
-        onPressed: _isLoading ? null : _handleLogin,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.deepPurple,
-          padding: EdgeInsets.symmetric(horizontal: 40.0),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+    return ElevatedButton(
+      onPressed: _isLoading ? null : _handleLogin,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.blue[800],
+        foregroundColor: Colors.white,
+        padding: EdgeInsets.symmetric(vertical: 16.0),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
         ),
-        child: Text('LOGIN', style: TextStyle(color: Colors.white)),
+      ),
+      child: Text(
+        'LOGIN',
+        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
       ),
     );
   }
 
   Widget _buildSignupLink(BuildContext context) {
-    return Container(
-      alignment: Alignment.center,
-      child: TextButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => SignupScreen()),
-          );
-        },
-        child: Text(
-          "Don't have an account? Sign Up",
-          style: TextStyle(color: Colors.blue),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text("Don't have an account?"),
+        TextButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => SignupScreen()),
+            );
+          },
+          child: Text(
+            "Sign Up",
+            style: TextStyle(color: Colors.blue[800], fontWeight: FontWeight.bold),
+          ),
         ),
-      ),
+      ],
     );
   }
 
@@ -209,7 +256,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
 
       try {
         final response = await http.post(
-          Uri.parse('http://192.168.0.194:5000/login'), // Replace with your API URL
+          Uri.parse('https://yms-backend.onrender.com/login'),
           headers: {
             'Content-Type': 'application/json',
           },
@@ -224,7 +271,6 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
           final token = jsonResponse['token'];
 
           if (token != null) {
-            // Save the token and user ID in shared preferences
             await SharedPreferenceManager().saveUserDetails(token, userid);
 
             ScaffoldMessenger.of(context).showSnackBar(

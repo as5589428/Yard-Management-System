@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/pages/yard/yard_forms/vehicle_photo/photo_entry.dart';
+ // Import the PhotoEntryPage
 
 class VahanDetailsForm extends StatefulWidget {
   @override
@@ -12,8 +14,10 @@ class _VahanDetailsFormState extends State<VahanDetailsForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('VAHAN DETAILS', 
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+        title: Text(
+          'VAHAN DETAILS',
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+        ),
         backgroundColor: Color(0xFF1E88E5),
         elevation: 0,
       ),
@@ -133,9 +137,10 @@ class _VahanDetailsFormState extends State<VahanDetailsForm> {
                     child: ElevatedButton(
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Processing Data', 
-                              style: TextStyle(color: Colors.white))),
+                          // Navigate to PhotoEntryPage on successful form validation
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => PhotoEntryPage()),
                           );
                         }
                       },

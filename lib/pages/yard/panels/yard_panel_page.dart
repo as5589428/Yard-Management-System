@@ -4,7 +4,31 @@ import 'package:flutter_application_1/pages/Yard/yard_forms/yard_vehicle_exit.da
 import '../yard_forms/yard_vehicle_entry_page.dart';
 import 'yard_vehicle_list_page.dart';
 
-class YardPanelPage extends StatelessWidget {
+class YardPanelPage extends StatefulWidget {
+  @override
+  _YardPanelPageState createState() => _YardPanelPageState();
+}
+
+class _YardPanelPageState extends State<YardPanelPage> {
+  int _selectedIndex = 0;
+
+  final List<Widget> _pages = [
+    VehicleRegistrationForm(),
+    PendingVehicleEntryPage(),
+    YardVehicleListPage(),
+    VehicleExitForm(),
+  ];
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => _pages[index]),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -16,6 +40,49 @@ class YardPanelPage extends StatelessWidget {
         backgroundColor: Colors.green[700],
         elevation: 0,
         centerTitle: true,
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.green[700],
+              ),
+              child: Text(
+                'Yard Menu',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                ),
+              ),
+            ),
+            ListTile(
+              leading: Icon(Icons.settings),
+              title: Text('Settings'),
+              onTap: () {
+                // Handle the Settings action
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.help),
+              title: Text('Help Center'),
+              onTap: () {
+                // Handle the Help Center action
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.info),
+              title: Text('About'),
+              onTap: () {
+                // Handle the About action
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -31,6 +98,12 @@ class YardPanelPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                CircleAvatar(
+                  radius: 50,
+                  backgroundColor: Colors.white,
+                  child: Image.asset('assets/logo-white.jpg', width: 80, height: 80),
+                ),
+                SizedBox(height: 20),
                 Text(
                   "Welcome to the Yard",
                   style: TextStyle(
@@ -45,54 +118,58 @@ class YardPanelPage extends StatelessWidget {
                   "Yard Vehicle Entry",
                   Icons.directions_car_filled,
                   Colors.green,
-                  () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => VehicleRegistrationForm()),
-                    );
-                  },
+                  () => _onItemTapped(0),
                 ),
                 SizedBox(height: 20),
                 _buildPanelButton(
                   "Pending Vehicle Entry",
                   Icons.pending,
-                  Colors.yellow[700]!,
-                  () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => PendingVehicleEntryPage()),
-                    );
-                  },
+                  Colors.orange,
+                  () => _onItemTapped(1),
                 ),
                 SizedBox(height: 20),
                 _buildPanelButton(
                   "Yard Vehicle List",
                   Icons.list_alt,
                   Colors.teal,
-                  () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => YardVehicleListPage()),
-                    );
-                  },
+                  () => _onItemTapped(2),
                 ),
                 SizedBox(height: 20),
                 _buildPanelButton(
                   "Vehicle Exit",
                   Icons.exit_to_app,
                   Colors.redAccent,
-                  () {
-                       Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => VehicleExitForm()),
-                    );
-                    // Handle Vehicle Exit
-                  },
+                  () => _onItemTapped(3),
                 ),
               ],
             ),
           ),
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.directions_car_filled),
+            label: 'Entry',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.pending),
+            label: 'Pending',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.list_alt),
+            label: 'List',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.exit_to_app),
+            label: 'Exit',
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: Colors.green[700],
+        unselectedItemColor: Colors.grey,
+        onTap: _onItemTapped,
+        type: BottomNavigationBarType.fixed,
       ),
     );
   }
@@ -100,9 +177,7 @@ class YardPanelPage extends StatelessWidget {
   Widget _buildPanelButton(String label, IconData icon, Color color, VoidCallback onPressed) {
     return GestureDetector(
       onTap: onPressed,
-      child: AnimatedContainer(
-        duration: Duration(milliseconds: 200),
-        curve: Curves.easeInOut,
+      child: Container(
         width: double.infinity,
         height: 80,
         decoration: BoxDecoration(
@@ -114,7 +189,7 @@ class YardPanelPage extends StatelessWidget {
           borderRadius: BorderRadius.circular(15),
           boxShadow: [
             BoxShadow(
-              color: Colors.black26,
+              color: Colors.black.withOpacity(0.1),
               blurRadius: 8,
               offset: Offset(0, 4),
             ),
@@ -133,7 +208,7 @@ class YardPanelPage extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
-          ],
+          ], 
         ),
       ),
     );
