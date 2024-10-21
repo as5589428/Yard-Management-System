@@ -1,6 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/pages/Admin/Profile/admin_profile.dart';
+// Import your YardPanelPage and other pages here
+import 'yard_panel_page.dart'; // Make sure this path is correct
+import 'package:flutter_application_1/pages/Yard/panels/pending_vehicle_entry.dart';
+import 'package:flutter_application_1/pages/Yard/yard_forms/yard_vehicle_exit.dart';
+import '../yard_forms/yard_vehicle_entry_page.dart';
+import 'yard_vehicle_list_page.dart';
+import '../panels/yard_vehicle_list_page.dart';
+class PendingVehicleEntryPage extends StatefulWidget {
+  @override
+  _PendingVehicleEntryPageState createState() => _PendingVehicleEntryPageState();
+}
 
-class PendingVehicleEntryPage extends StatelessWidget {
+class _PendingVehicleEntryPageState extends State<PendingVehicleEntryPage> {
   // Sample pending vehicle data (you can replace this with your dynamic data source)
   final List<Map<String, String>> pendingVehicles = [
     {
@@ -18,6 +30,49 @@ class PendingVehicleEntryPage extends StatelessWidget {
       'status': 'Pending'
     },
   ];
+
+  int _selectedIndex = 1; // Set initial index to 'Pending Vehicles' tab
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+
+    // Handle page switching based on the selected index
+    switch (index) {
+      case 0:
+        // Navigate to YardPanelPage when Home is tapped
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => YardPanelPage()),
+        );
+        break;
+      case 1:
+        // Stay on the current page, as it's for "Pending Vehicles"
+        break;
+      case 2:
+        // Navigate to a list page (You need to create this page)
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => YardVehicleListPage()), // Add your ListPage
+        );
+        break;
+      case 3:
+        // Navigate to an exit page (You need to create this page)
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => VehicleExitForm()), // Add your ExitPage
+        );
+        break;
+      case 4:
+        // Navigate to a profile page (You need to create this page)
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ProfilePage()), // Add your ProfilePage
+        );
+        break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +95,7 @@ class PendingVehicleEntryPage extends StatelessWidget {
                 style: TextStyle(fontSize: 18, color: Colors.grey),
               ),
             ),
+      bottomNavigationBar: _buildAnimatedBottomNavigationBar(),
     );
   }
 
@@ -82,7 +138,6 @@ class PendingVehicleEntryPage extends StatelessWidget {
                   width: 90,
                   child: ElevatedButton(
                     onPressed: () {
-                      // Add action for viewing vehicle details
                       _showVehicleDetails(context, vehicle);
                     },
                     child: Text(
@@ -100,7 +155,6 @@ class PendingVehicleEntryPage extends StatelessWidget {
                   width: 90,
                   child: ElevatedButton(
                     onPressed: () {
-                      // Add action for approving the vehicle
                       _approveVehicle(vehicle);
                     },
                     child: Text(
@@ -118,7 +172,6 @@ class PendingVehicleEntryPage extends StatelessWidget {
                   width: 90,
                   child: ElevatedButton(
                     onPressed: () {
-                      // Add action for rejecting the vehicle
                       _rejectVehicle(vehicle);
                     },
                     child: Text(
@@ -139,7 +192,6 @@ class PendingVehicleEntryPage extends StatelessWidget {
     );
   }
 
-  // Method to show detailed information about the vehicle in a dialog
   void _showVehicleDetails(BuildContext context, Map<String, String> vehicle) {
     showDialog(
       context: context,
@@ -172,17 +224,67 @@ class PendingVehicleEntryPage extends StatelessWidget {
     );
   }
 
-  // Method to handle vehicle approval
   void _approveVehicle(Map<String, String> vehicle) {
-    // Update status to "Approved" (this is just a sample; you can replace this with your logic)
     vehicle['status'] = 'Approved';
-    // Show a confirmation message or perform any other action as needed
+    setState(() {});
   }
 
-  // Method to handle vehicle rejection
   void _rejectVehicle(Map<String, String> vehicle) {
-    // Update status to "Rejected" (this is just a sample; you can replace this with your logic)
     vehicle['status'] = 'Rejected';
-    // Show a confirmation message or perform any other action as needed
+    setState(() {});
+  }
+
+  Widget _buildAnimatedBottomNavigationBar() {
+    return Container(
+      decoration: BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: Offset(0, -2),
+          ),
+        ],
+      ),
+      child: BottomNavigationBar(
+        items: <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: _buildAnimatedIcon(Icons.home, 0),
+            label: 'Home', // Changed from Entry to Home
+          ),
+          BottomNavigationBarItem(
+            icon: _buildAnimatedIcon(Icons.pending, 1),
+            label: 'Pending',
+          ),
+          BottomNavigationBarItem(
+            icon: _buildAnimatedIcon(Icons.list_alt, 2),
+            label: 'List',
+          ),
+          BottomNavigationBarItem(
+            icon: _buildAnimatedIcon(Icons.exit_to_app, 3),
+            label: 'Exit',
+          ),
+          BottomNavigationBarItem(
+            icon: _buildAnimatedIcon(Icons.person, 4),
+            label: 'Profile',
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: Color(0xFFFDBB2D),
+        unselectedItemColor: Colors.grey[600],
+        selectedLabelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+        unselectedLabelStyle: TextStyle(fontSize: 12),
+        onTap: _onItemTapped,
+        type: BottomNavigationBarType.fixed,
+      ),
+    );
+  }
+
+  Widget _buildAnimatedIcon(IconData icon, int index) {
+    return Icon(
+      icon,
+      color: _selectedIndex == index ? Color(0xFFFDBB2D) : Colors.grey[600],
+    );
   }
 }
+
+// You need to create the ListPage, ExitPage, and ProfilePage widgets in separate files.

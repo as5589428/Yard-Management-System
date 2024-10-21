@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/pages/Yard/yard_forms/exit_vehicle_details.dart';
 import 'vehicle_details.dart';
+import 'package:flutter_application_1/pages/Yard/panels/pending_vehicle_entry.dart';
+import 'package:flutter_application_1/pages/Yard/yard_forms/yard_vehicle_exit.dart';
+import '../yard_forms/yard_vehicle_entry_page.dart';
+import '../panels/yard_vehicle_list_page.dart';
 
 class VehicleExitForm extends StatefulWidget {
   @override
@@ -8,8 +12,14 @@ class VehicleExitForm extends StatefulWidget {
 }
 
 class _VehicleExitFormState extends State<VehicleExitForm> {
+  int _selectedIndex = 0;
   final _formKey = GlobalKey<FormState>();
-
+  final List<Widget> _pages = [
+    VehicleRegistrationForm(),
+    PendingVehicleEntryPage(),
+    YardVehicleListPage(),
+    VehicleExitForm(),
+  ];
   final _clientNameController = TextEditingController();
   final _agreementNumberController = TextEditingController();
   final _makeModelController = TextEditingController();
@@ -53,84 +63,84 @@ class _VehicleExitFormState extends State<VehicleExitForm> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Vehicle Exit Form"),
-        backgroundColor: Colors.red[300],
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Vehicle Exit Details",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 20),
-                _buildTextField("Client Name", _clientNameController),
-                _buildTextField("Agreement Number", _agreementNumberController),
-                _buildTextField("Make/Model/Variant", _makeModelController),
-                Row(
-                  children: [
-                    Expanded(child: _buildTextField("Ref.No.", _refNoController)),
-                    SizedBox(width: 10),
-                    Expanded(child: _buildTextField("Segment", _segmentController)),
-                  ],
-                ),
-                _buildTextField("Registration number", _registrationNumberController),
-                _buildTextField("Loan No", _loanNoController),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildFuelTypeDropdown(), // Replace TextField with Dropdown for Fuel Type
-                    ),
-                    SizedBox(width: 10),
-                    Expanded(child: _buildTextField("Odometer Reading", _odometerReadingController)),
-                  ],
-                ),
-                _buildTextField("Yard", _yardController),
-                GestureDetector(
-                  onTap: () => _selectExitDateTime(context),
-                  child: AbsorbPointer(
-                    child: _buildTextField(
-                      "Exit Date & Time",
-                      _exitDateTimeController,
-                    ),
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      title: Text("Vehicle Exit Form"),
+      backgroundColor: Colors.red[300],
+    ),
+    body: SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Vehicle Exit Details",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 20),
+              _buildTextField("Client Name", _clientNameController),
+              _buildTextField("Agreement Number", _agreementNumberController),
+              _buildTextField("Make/Model/Variant", _makeModelController),
+              Row(
+                children: [
+                  Expanded(child: _buildTextField("Ref.No.", _refNoController)),
+                  SizedBox(width: 10),
+                  Expanded(child: _buildTextField("Segment", _segmentController)),
+                ],
+              ),
+              _buildTextField("Registration number", _registrationNumberController),
+              _buildTextField("Loan No", _loanNoController),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildFuelTypeDropdown(), // Replace TextField with Dropdown for Fuel Type
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(child: _buildTextField("Odometer Reading", _odometerReadingController)),
+                ],
+              ),
+              _buildTextField("Yard", _yardController),
+              GestureDetector(
+                onTap: () => _selectExitDateTime(context),
+                child: AbsorbPointer(
+                  child: _buildTextField(
+                    "Exit Date & Time",
+                    _exitDateTimeController,
                   ),
                 ),
-                _buildTextField("Geo Location", _geoLocationController),
-                SizedBox(height: 20),
-                Center(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => ExitVehicleDetailsForm()),
-                        );
-                      }
-                    },
-                    child: Text('Submit Exit'),
-                    style: ElevatedButton.styleFrom(
-            
-                      backgroundColor: Colors.red,
-                      padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                    ),
+              ),
+              _buildTextField("Geo Location", _geoLocationController),
+              SizedBox(height: 20),
+              Center(
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => ExitVehicleDetailsForm()),
+                      );
+                    }
+                  },
+                  child: Text('Submit Exit'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
-    );
-  }
+    ),
+    bottomNavigationBar: _buildAnimatedBottomNavigationBar(), // Add the bottom navigation bar here
+  );
+}
 
   Widget _buildFuelTypeDropdown() {
     return DropdownButtonFormField<String>(
@@ -188,6 +198,67 @@ class _VehicleExitFormState extends State<VehicleExitForm> {
           return null;
         },
       ),
+    );
+  }
+    void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => _pages[index]),
+      
+    );
+  }
+  Widget _buildAnimatedBottomNavigationBar() {
+    return Container(
+      decoration: BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: Offset(0, -2),
+          ),
+        ],
+      ),
+      child: BottomNavigationBar(
+        items: <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: _buildAnimatedIcon(Icons.directions_car_filled, 0),
+            label: 'Entry',
+          ),
+          BottomNavigationBarItem(
+            icon: _buildAnimatedIcon(Icons.pending, 1),
+            label: 'Pending',
+          ),
+          BottomNavigationBarItem(
+            icon: _buildAnimatedIcon(Icons.list_alt, 2),
+            label: 'List',
+          ),
+          BottomNavigationBarItem(
+            icon: _buildAnimatedIcon(Icons.exit_to_app, 3),
+            label: 'Exit',
+          ),
+          BottomNavigationBarItem(
+            icon: _buildAnimatedIcon(Icons.person, 4),
+            label: 'Profile',
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: Color(0xFFFDBB2D),
+        unselectedItemColor: Colors.grey[600],
+        selectedLabelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+        unselectedLabelStyle: TextStyle(fontSize: 12),
+        onTap: _onItemTapped,
+        type: BottomNavigationBarType.fixed,
+      ),
+    );
+  }
+
+  Widget _buildAnimatedIcon(IconData icon, int index) {
+    return Icon(
+      icon,
+      color: _selectedIndex == index ? Color(0xFFFDBB2D) : Colors.grey[600],
     );
   }
 }
