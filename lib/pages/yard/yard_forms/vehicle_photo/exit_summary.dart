@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
-class SummaryPage extends StatelessWidget {
+class ExitSummaryPage extends StatelessWidget {
   final String customerName;
   final String engineNumber;
   final String chassisNumber;
@@ -15,7 +15,7 @@ class SummaryPage extends StatelessWidget {
   final Map<String, String> imageTimestamps;
   final Map<String, XFile?> images;
 
-  const SummaryPage({
+  const ExitSummaryPage({
     Key? key,
     required this.customerName,
     required this.engineNumber,
@@ -34,8 +34,8 @@ class SummaryPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Summary"),
-        backgroundColor: Colors.blue[700],
+        title: const Text("Exit Summary"),
+        backgroundColor: Colors.red[700], // Use a distinct color for the exit summary page
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -43,7 +43,10 @@ class SummaryPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("Vehicle Details", style: Theme.of(context).textTheme.headlineSmall),
+              Text(
+                "Exit Vehicle Details",
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
               const SizedBox(height: 8),
               Text("Customer Name: $customerName"),
               Text("Engine Number: $engineNumber"),
@@ -55,7 +58,10 @@ class SummaryPage extends StatelessWidget {
               Text("Transmission: $transmission"),
               Text("Remarks: $remarks"),
               const Divider(height: 32),
-              Text("Captured Photos", style: Theme.of(context).textTheme.headlineSmall),
+              Text(
+                "Captured Exit Photos",
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
               const SizedBox(height: 8),
               ...images.entries.map((entry) {
                 return Column(

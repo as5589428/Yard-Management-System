@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import '../panels/yard_panel_page.dart';
 import '../signup/signup_page.dart';
 import 'package:lottie/lottie.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -16,6 +17,25 @@ class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
 
   final String loginUrl = 'https://yms-backend.onrender.com/yardowner/login';
+
+  @override
+  void initState() {
+    super.initState();
+    _checkLoginStatus();
+  }
+
+  // Check if the user is already logged in
+  Future<void> _checkLoginStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('userToken');
+
+    if (token != null) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => YardPanelPage()),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -91,7 +111,6 @@ class _LoginPageState extends State<LoginPage> {
                     ? Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // Lottie.asset('assets/car_loading.json', width: 100, height: 100),
                           SizedBox(height: 10),
                           Text(
                             "Loading...",
@@ -223,6 +242,10 @@ class _LoginPageState extends State<LoginPage> {
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
         final token = responseData['token'];
+
+        // Save the token in shared_preferences for session management
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('userToken', token);
 
         showDialog(
           context: context,

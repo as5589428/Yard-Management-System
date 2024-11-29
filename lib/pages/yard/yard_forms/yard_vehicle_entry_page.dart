@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/pages/Admin/Profile/admin_profile.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'vehicle_details.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:flutter_application_1/pages/Yard/panels/pending_vehicle_entry.dart';
-import 'package:flutter_application_1/pages/Yard/yard_forms/yard_vehicle_exit.dart';
-import '../yard_forms/yard_vehicle_entry_page.dart';
-// import 'yard_vehicle_list_page.dart';
-import '../panels/yard_vehicle_list_page.dart';
+// import 'package:dropdown_search/dropdown_search.dart';
+import 'package:dropdown_search/dropdown_search.dart';
+import 'package:intl/intl.dart';
+import 'dart:developer'; 
 class VehicleRegistrationForm extends StatefulWidget {
   @override
   _VehicleRegistrationFormState createState() => _VehicleRegistrationFormState();
@@ -17,50 +15,7 @@ class VehicleRegistrationForm extends StatefulWidget {
 
 class _VehicleRegistrationFormState extends State<VehicleRegistrationForm> {
   final _formKey = GlobalKey<FormState>();
-  int _selectedIndex = 0;
-// Set initial index to 'Pending Vehicles' tab
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-
-    // Handle page switching based on the selected index
-    switch (index) {
-      case 0:
-        // Navigate to YardPanelPage when Home is tapped
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => YardVehicleListPage()),
-        );
-        break;
-      case 1:
-        // Stay on the current page, as it's for "Pending Vehicles"
-        break;
-      case 2:
-        // Navigate to a list page (You need to create this page)
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => YardVehicleListPage()), // Add your ListPage
-        );
-        break;
-      case 3:
-        // Navigate to an exit page (You need to create this page)
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => VehicleExitForm()), // Add your ExitPage
-        );
-        break;
-      case 4:
-        // Navigate to a profile page (You need to create this page)
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => ProfilePage()), // Add your ProfilePage
-        );
-        break;
-    }
-  }
-  // Controllers for text fields
   final _clientNameController = TextEditingController();
   final _agreementNumberController = TextEditingController();
   final _makeController = TextEditingController();
@@ -76,15 +31,54 @@ class _VehicleRegistrationFormState extends State<VehicleRegistrationForm> {
   final _yardController = TextEditingController();
   final _inwardDateTimeController = TextEditingController();
   final _geoLocationController = TextEditingController();
+ final TextEditingController inwardDateTimeController = TextEditingController();
 
   String? _selectedFuelType;
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
 
+  List<dynamic> vehicleData = [];
+  List<String> makeList = [];
+  List<String> modelList = [];
+  List<String> variantList = [];
+
+ // Fetch data from API
+  Future<void> fetchVehicleData() async {
+    final response = await http.get(Uri.parse('http://192.168.0.194:5000/api/makeModelDataset'));
+    print(response);
+    if (response.statusCode == 200) {
+      vehicleData = json.decode(response.body);
+      setState(() {
+        makeList = vehicleData.map((item) => item['Make'] as String).toSet().toList();
+      });
+    } else {
+      throw Exception('Failed to load vehicle data');
+    }
+  }
   @override
   void initState() {
     super.initState();
     _loadSavedForm();
+      super.initState();
+    fetchVehicleData();
+      _setCurrentDateTime();
+  }
+
+  void _setCurrentDateTime() {
+    final now = DateTime.now();
+    final formattedDate = DateFormat('yyyy-MM-dd HH:mm').format(now); // Customize format as needed
+    _inwardDateTimeController.text = formattedDate;
+  }
+
+  @override
+  void dispose() {
+    _inwardDateTimeController.dispose();
+    super.dispose();
+  }  
+
+  // You can use this if you still want a manual refresh
+  void _selectDateTime(BuildContext context) {
+    _setCurrentDateTime();
   }
 
   Future<void> _getCurrentLocation() async {
@@ -126,31 +120,72 @@ class _VehicleRegistrationFormState extends State<VehicleRegistrationForm> {
     });
   }
 
-  Future<void> _selectDateTime(BuildContext context) async {
-    final DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
-    );
-    if (pickedDate != null) {
-      final TimeOfDay? pickedTime = await showTimePicker(
-        context: context,
-        initialTime: TimeOfDay.now(),
-      );
+ 
 
-      if (pickedTime != null) {
-        setState(() {
-          _selectedDate = pickedDate;
-          _selectedTime = pickedTime;
-          _inwardDateTimeController.text = '${_selectedDate!.toLocal().toString().split(' ')[0]} ${_selectedTime!.format(context)}';
-        });
-      }
-    }
-  }
 
-  Future<void> _saveForm() async {
+// Future<void> _saveForm() async {
+//   try {
+//     SharedPreferences prefs = await SharedPreferences.getInstance();
+//     await prefs.setString('clientName', _clientNameController.text);
+//     await prefs.setString('agreementNumber', _agreementNumberController.text);
+//     await prefs.setString('make', _makeController.text);
+//     await prefs.setString('model', _modelController.text);
+//     await prefs.setString('variant', _variantController.text);
+//     await prefs.setString('refNo', _refNoController.text);
+//     await prefs.setString('segment', _segmentController.text);
+//     await prefs.setString('geoLocation', _geoLocationController.text);
+//     await prefs.setString('inwardDateTime', _inwardDateTimeController.text);
+
+
+//     var url = Uri.parse('http://192.168.0.194:5000/api/inward');
+//     var response = await http.post(
+//       url,
+//       headers: <String, String>{
+//         'Content-Type': 'application/json',
+//       },
+//       body: jsonEncode({
+//         'clientName': _clientNameController.text,
+//         'agreementNumber': _agreementNumberController.text,
+//         'make': _makeController.text,
+//         'model': _modelController.text,
+//         'variant': _variantController.text,
+//         'refNo': _refNoController.text,
+//         'segment': _segmentController.text,
+//         'geoLocation': _geoLocationController.text,
+//         'inwardDateTime': _inwardDateTimeController.text,
+//         'loanNo': _loanNoController.text,
+//         'fuelType': _selectedFuelType,
+//         'odometerReading': _odometerReadingController.text,
+//         'yard': _yardController.text,
+//       }),
+//     );
+
+//      // Debug the response
+//     log('Response Status: ${response.statusCode}');
+//     log('Response Body: ${response.body}');
+
+//     if (response.statusCode == 201) {
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         SnackBar(content: Text('Form saved successfully')),
+//       );
+//     } else {
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         SnackBar(content: Text('Failed to save form: ${response.body}')),
+//       );
+//     }
+//   } catch (error) {
+//     log('Error: $error');
+//     ScaffoldMessenger.of(context).showSnackBar(
+//       SnackBar(content: Text('An error occurred: $error')),
+//     );
+//   }
+// }
+
+Future<void> _saveFirstScreenForm() async {
+  try {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    // Save the first screen data in SharedPreferences
     await prefs.setString('clientName', _clientNameController.text);
     await prefs.setString('agreementNumber', _agreementNumberController.text);
     await prefs.setString('make', _makeController.text);
@@ -160,42 +195,25 @@ class _VehicleRegistrationFormState extends State<VehicleRegistrationForm> {
     await prefs.setString('segment', _segmentController.text);
     await prefs.setString('geoLocation', _geoLocationController.text);
     await prefs.setString('inwardDateTime', _inwardDateTimeController.text);
+    await prefs.setString('loanNo', _loanNoController.text);
+    await prefs.setString('fuelType', _selectedFuelType.toString());
 
-    // Now send data to Node.js API
-    var url = Uri.parse('http://192.168.0.194:5000/api/inward');
-    var response = await http.post(
-      url,
-      headers: <String, String>{
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'clientName': _clientNameController.text,
-        'agreementNumber': _agreementNumberController.text,
-        'make': _makeController.text,
-        'model': _modelController.text,
-        'variant': _variantController.text,
-        'refNo': _refNoController.text,
-        'segment': _segmentController.text,
-        'geoLocation': _geoLocationController.text,
-        'inwardDateTime': _inwardDateTimeController.text,
-        'loanNo': _loanNoController.text,
-        'fuelType': _selectedFuelType,
-        'odometerReading': _odometerReadingController.text,
-        'yard': _yardController.text,
-      }),
+    await prefs.setString('odometerReading', _odometerReadingController.text);
+    await prefs.setString('yard', _yardController.text);
+
+    // Navigate to the second screen
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => VehicleDetailsForm()),
     );
-
-    if (response.statusCode == 201) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Form saved successfully')),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save form')),
-      );
-    }
+  } catch (error) {
+    log('Error: $error');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('An error occurred: $error')),
+    );
   }
-  
+}
+
 
   Future<void> _loadSavedForm() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -212,258 +230,336 @@ class _VehicleRegistrationFormState extends State<VehicleRegistrationForm> {
     });
   }
 
- @override
-Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBar(
-      title: Text("Vehicle Registration"),
-      backgroundColor: Color(0xFFFDBB2D),
-      actions: [
-        IconButton(
-          icon: Icon(Icons.save),
-          onPressed: _saveForm,
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          "Vehicle Registration",
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
-      ],
-    ),
-    body: Container(
-      color: Colors.white,
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildSectionHeader("Client Information"),
-                _buildLabeledTextField("Client Name", _clientNameController),
-                _buildLabeledTextField("Agreement Number", _agreementNumberController),
-                
-                _buildSectionHeader("Vehicle Details"),
-                _buildLabeledTextField("Make", _makeController),
-                _buildLabeledTextField("Model", _modelController),
-                _buildLabeledTextField("Variant", _variantController),
-                Row(
-                  children: [
-                    Expanded(child: _buildLabeledTextField("Ref.No.", _refNoController)),
-                    SizedBox(width: 10),
-                    Expanded(child: _buildLabeledTextField("Segment", _segmentController)),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Expanded(child: _buildLabeledTextField("Loan No", _loanNoController)),
-                    SizedBox(width: 10),
-                    Expanded(child: _buildLabeledFuelTypeDropdown()),
-                  ],
-                ),
-                _buildLabeledTextField("Odometer Reading", _odometerReadingController),
-                _buildLabeledTextField("Yard", _yardController),
-                
-                _buildSectionHeader("Other Information"),
-                GestureDetector(
-                  onTap: () => _selectDateTime(context),
-                  child: AbsorbPointer(
-                    child: _buildLabeledTextField(
-                      "Inward Date & Time",
-                      _inwardDateTimeController,
+        backgroundColor: Colors.green[400],
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.save),
+            onPressed:_saveFirstScreenForm,
+          ),
+        ],
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.green[400]!, Colors.white],
+            stops: [0.0, 0.3],
+          ),
+        ),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSectionHeader("Client Information"),
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                  ),
-                ),
-                Row(
-                  children: [
-                    Expanded(child: _buildLabeledTextField("Geo Location", _geoLocationController)),
-                    SizedBox(width: 10),
-                    ElevatedButton(
-                      onPressed: _getCurrentLocation,
-                      child: Text("Allow Location"),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFFFDBB2D),
-                        foregroundColor: Colors.white,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          _buildTextField("Client Name", _clientNameController, Icons.person),
+                          _buildTextField("Agreement Number", _agreementNumberController, Icons.description),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-                SizedBox(height: 20),
-                Center(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => VehicleDetailsForm()),
-                        );
-                      }
-                    },
-                    child: Text('Next'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFFFDBB2D),
-                      foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                  ),
+                  SizedBox(height: 20),
+
+                  _buildSectionHeader("Vehicle Details"),
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                            _buildDropdown("Make", makeList, _makeController, Icons.directions_car, _onMakeChanged),
+                _buildDropdown("Model", modelList, _modelController, Icons.car_repair, _onModelChanged),
+                _buildDropdown("Variant", variantList, _variantController, Icons.merge_type, _onVariantChanged),
+                
+                          Row(
+                            children: [
+                              Expanded(child: _buildTextField("Ref.No.", _refNoController, Icons.numbers)),
+                              SizedBox(width: 10),
+                              Expanded(child: _buildTextField("Segment", _segmentController, Icons.category, readOnly: true)),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              Expanded(child: _buildTextField("Loan No", _loanNoController, Icons.account_balance)),
+                              SizedBox(width: 10),
+                              Expanded(child: _buildFuelTypeDropdown()),
+                            ],
+                          ),
+                          _buildTextField("Odometer Reading", _odometerReadingController, Icons.speed),
+                          _buildTextField("Yard", _yardController, Icons.location_city),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                  SizedBox(height: 20),
+
+                  _buildSectionHeader("Other Information"),
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          GestureDetector(
+                            onTap: () => _selectDateTime(context),
+                            child: AbsorbPointer(
+                              child: _buildTextField(
+                                "Inward Date & Time",
+                                _inwardDateTimeController,
+                                Icons.calendar_today,
+                              ),
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildTextField(
+                                  "Geo Location",
+                                  _geoLocationController,
+                                  Icons.location_on,
+                                ),
+                              ),
+                              SizedBox(width: 10),
+                              ElevatedButton.icon(
+                                onPressed: _getCurrentLocation,
+                                icon: Icon(Icons.my_location),
+                                label: Text("Location"),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.green[400],
+                                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 30),
+
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (_formKey.currentState!.validate()) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => VehicleDetailsForm()),
+                          );
+                        }
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                        child: Text(
+                          'Continue to Details',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green[400],
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        elevation: 5,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                ],
+              ),
             ),
           ),
         ),
       ),
-    ),
-    bottomNavigationBar: _buildAnimatedBottomNavigationBar (),
-  );
-}
-
-Widget _buildLabeledTextField(String label, TextEditingController controller, {int maxLines = 1}) {
+    );
+  }
+Widget _buildDropdown(String label, List<String> items, TextEditingController controller, IconData icon, Function(String?) onChanged) {
   return Padding(
-    padding: const EdgeInsets.only(bottom: 15.0),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-            color: Colors.black87,
+    padding: const EdgeInsets.symmetric(vertical: 8.0), // Add padding between fields
+    child: DropdownSearch<String>(
+      items: items,
+      selectedItem: controller.text,
+      dropdownDecoratorProps: DropDownDecoratorProps(
+        dropdownSearchDecoration: InputDecoration(
+          labelText: label,
+          prefixIcon: Icon(
+            icon,
+            color: Colors.green[600], // Set icon color to green
+          ),
+          contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16), // Padding inside the dropdown
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
           ),
         ),
-        SizedBox(height: 5),
-        TextFormField(
-          controller: controller,
-          maxLines: maxLines,
-          decoration: InputDecoration(
-            border: OutlineInputBorder(),
-            filled: true,
-            fillColor: Colors.grey[100],
-          ),
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Please enter $label';
-            }
-            return null;
-          },
-        ),
-      ],
-    ),
-  );
-}
-
-Widget _buildLabeledFuelTypeDropdown() {
-  return Padding(
-    padding: const EdgeInsets.only(bottom: 15.0),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Fuel Type',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-            color: Colors.black87,
-          ),
-        ),
-        SizedBox(height: 5),
-        DropdownButtonFormField<String>(
-          value: _selectedFuelType,
-          items: [
-            'Petrol',
-            'Diesel',
-            'CNG',
-            'LPG',
-            'Ethanol',
-            'Hybrids',
-            'EV'
-          ].map((fuelType) {
-            return DropdownMenuItem(
-              value: fuelType,
-              child: Text(fuelType),
-            );
-          }).toList(),
-          decoration: InputDecoration(
-            border: OutlineInputBorder(),
-            filled: true,
-            fillColor: Colors.grey[100],
-          ),
-          onChanged: (value) {
-            setState(() {
-              _selectedFuelType = value;
-            });
-          },
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Please select a fuel type';
-            }
-            return null;
-          },
-        ),
-      ],
-    ),
-  );
-}
-
-Widget _buildSectionHeader(String title) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 10.0),
-    child: Text(
-      title,
-      style: TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.bold,
-        color: Colors.black,
       ),
+      dropdownBuilder: (context, selectedItem) => Text(selectedItem ?? ""),
+      popupProps: PopupProps.menu(
+        showSearchBox: true, // Enables search in the dropdown menu
+      ),
+      onChanged: (value) {
+        controller.text = value!;
+        onChanged(value);
+      },
     ),
   );
 }
 
-  Widget _buildAnimatedBottomNavigationBar() {
-    return Container(
-      decoration: BoxDecoration(
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: Offset(0, -2),
+
+  Widget _buildFuelTypeDropdown() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 15.0),
+      child: DropdownButtonFormField<String>(
+        value: _selectedFuelType,
+        items: [
+          'Petrol',
+          'Diesel',
+          'CNG',
+          'LPG',
+          'Ethanol',
+          'Hybrids',
+          'EV'
+        ].map((fuelType) {
+          return DropdownMenuItem(
+            value: fuelType,
+            child: Text(fuelType),
+          );
+        }).toList(),
+        decoration: InputDecoration(
+          labelText: 'Fuel Type',
+          prefixIcon: Icon(Icons.local_gas_station, color: Colors.green[600]),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: Colors.grey[300]!),
           ),
-        ],
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: Colors.grey[300]!),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: Colors.green[400]!),
+          ),
+          filled: true,
+          fillColor: Colors.white,
+        ),
+        onChanged: (value) {
+          setState(() {
+            _selectedFuelType = value;
+          });
+        },
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please select a fuel type';
+          }
+          return null;
+        },
       ),
-      child: BottomNavigationBar(
-        items: <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: _buildAnimatedIcon(Icons.home, 0),
-            label: 'Home', // Changed from Entry to Home
+    );
+  }
+ // Handlers for dropdown changes
+  void _onMakeChanged(String? make) {
+    setState(() {
+      modelList = vehicleData.where((item) => item['Make'] == make).map((item) => item['Model'] as String).toSet().toList();
+      _modelController.clear();
+      _variantController.clear();
+      _segmentController.clear();
+      variantList.clear();
+    });
+  }
+
+    void _onModelChanged(String? model) {
+    setState(() {
+      variantList = vehicleData.where((item) => item['Model'] == model).map((item) => item['Variant'] as String).toSet().toList();
+      _variantController.clear();
+      final segment = vehicleData.firstWhere((item) => item['Model'] == model, orElse: () => null)?['Segment'];
+      _segmentController.text = segment ?? "";
+    });
+  }
+   void _onVariantChanged(String? variant) {
+    // Add additional logic if needed when variant changes
+  }
+  Widget _buildTextField(String label, TextEditingController controller, IconData icon, {int maxLines = 1,bool readOnly = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 15.0),
+      child: TextFormField(
+        controller: controller,
+        maxLines: maxLines,
+        
+             readOnly: readOnly,
+        decoration: InputDecoration(
+          labelText: label,
+          prefixIcon: Icon(icon, color: Colors.green[600]),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: Colors.grey[300]!),
           ),
-          BottomNavigationBarItem(
-            icon: _buildAnimatedIcon(Icons.pending, 1),
-            label: 'Pending',
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: Colors.grey[300]!),
           ),
-          BottomNavigationBarItem(
-            icon: _buildAnimatedIcon(Icons.list_alt, 2),
-            label: 'List',
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: Colors.green[400]!),
           ),
-          BottomNavigationBarItem(
-            icon: _buildAnimatedIcon(Icons.exit_to_app, 3),
-            label: 'Exit',
-          ),
-          BottomNavigationBarItem(
-            icon: _buildAnimatedIcon(Icons.person, 4),
-            label: 'Profile',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Color(0xFFFDBB2D),
-        unselectedItemColor: Colors.grey[600],
-        selectedLabelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-        unselectedLabelStyle: TextStyle(fontSize: 12),
-        onTap: _onItemTapped,
-        type: BottomNavigationBarType.fixed,
+          filled: true,
+          fillColor: Colors.white,
+          labelStyle: TextStyle(color: Colors.grey[600]),
+        ),
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please enter $label';
+          }
+          return null;
+        },
       ),
     );
   }
 
-  Widget _buildAnimatedIcon(IconData icon, int index) {
-    return Icon(
-      icon,
-      color: _selectedIndex == index ? Color(0xFFFDBB2D) : Colors.grey[600],
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10.0),
+      child: Text(
+        title.toUpperCase(),
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          color: Colors.green[700],
+          letterSpacing: 1.2,
+        ),
+      ),
     );
   }
 }

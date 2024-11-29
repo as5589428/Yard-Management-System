@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
-import '../login/login_page.dart'; // Import the login page
-import 'package:http/http.dart' as http;
-import 'dart:convert'; // For encoding JSON
-import 'package:lottie/lottie.dart'; // Import the lottie package
+import 'package:flutter_application_1/pages/yard/login/otp_verification_page.dart';
+import '../login/login_page.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
-class SignUpPage extends StatelessWidget {
+class SignUpPage extends StatefulWidget {
+  @override
+  _SignUpPageState createState() => _SignUpPageState();
+}
+
+class _SignUpPageState extends State<SignUpPage> {
+  final _formKey = GlobalKey<FormState>();
   final _parkingNameController = TextEditingController();
   final _contactPersonController = TextEditingController();
   final _stateController = TextEditingController();
@@ -14,78 +20,52 @@ class SignUpPage extends StatelessWidget {
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _addressController = TextEditingController();
-  final _passwordController = TextEditingController(); // Added password controller
+  final _passwordController = TextEditingController();
+  final ImagePicker _picker = ImagePicker();
 
-  final String apiUrl = "http://192.168.0.194:5000/yardowner/register";
+  File? _selectedImage;
+
+  Future<void> _pickImage(ImageSource source) async {
+    final pickedImage = await _picker.pickImage(source: source);
+    if (pickedImage != null) {
+      setState(() {
+        _selectedImage = File(pickedImage.path);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Yard Owner Sign-Up"),
-        backgroundColor: Colors.lightGreen[400] ?? Colors.lightGreen,
-        elevation: 1,
-        centerTitle: true,
-      ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.lightGreen.shade300, Colors.white],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF1E88E5),
+              Color(0xFF1565C0),
+            ],
           ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
+        child: SafeArea(
           child: SingleChildScrollView(
-            child: Column(
-              children: [
-                Text(
-                  "Register Your Yard",
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: const Color.fromARGB(255, 5, 10, 5),
-                  ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeader(context),
+                    _buildWelcomeSection(),
+                    _buildFormSection(),
+                    _buildImageUploadSection(),
+                    _buildSubmitButton(context),
+                    _buildLoginLink(context),
+                  ],
                 ),
-                SizedBox(height: 5),
-                Text(
-                  "Please fill in the details below to create your yard owner account",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: const Color.fromARGB(255, 105, 103, 103),
-                  ),
-                ),
-                SizedBox(height: 10),
-                _buildTextField("Parking Name", _parkingNameController, Icons.local_parking),
-                _buildTextField("Contact Person Name", _contactPersonController, Icons.person),
-                _buildTextField("State", _stateController, Icons.map),
-                _buildTextField("District", _districtController, Icons.location_city),
-                _buildTextField("City", _cityController, Icons.location_on),
-                _buildTextField("Pincode", _pincodeController, Icons.pin_drop, isNumeric: true),
-                _buildTextField("Phone Number", _phoneController, Icons.phone, isNumeric: true),
-                _buildTextField("Email", _emailController, Icons.email),
-                _buildTextField("Password", _passwordController, Icons.lock, isPassword: true),
-                _buildTextField("Address", _addressController, Icons.home, maxLines: 3),
-                SizedBox(height: 15),
-                ElevatedButton(
-                  onPressed: () {
-                    _registerYardOwner(context); // Call the registration function
-                  },
-                  child: Text("Verify via OTP"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.lightGreen[400] ?? Colors.lightGreen,
-                    padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                    textStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    elevation: 5,
-                  ),
-                ),
-                SizedBox(height: 20),
-              ],
+              ),
             ),
           ),
         ),
@@ -93,138 +73,314 @@ class SignUpPage extends StatelessWidget {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, IconData icon,
-      {bool isNumeric = false, bool isPassword = false, int maxLines = 1}) {
+  Widget _buildHeader(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12.0),
-      child: TextField(
+      padding: const EdgeInsets.only(top: 20.0),
+      child: Row(
+        children: [
+          IconButton(
+            icon: Icon(Icons.arrow_back_ios, color: Colors.white),
+            onPressed: () => Navigator.pop(context),
+          ),
+          Text(
+            'Create Account',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWelcomeSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 32.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Welcome to Aiyrat',
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              letterSpacing: 0.5,
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Register your yard and start managing your parking space efficiently',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.white.withOpacity(0.8),
+              letterSpacing: 0.3,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFormSection() {
+    return Container(
+      padding: EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 15,
+            offset: Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          _buildInputField(
+            "Parking Name",
+            _parkingNameController,
+            Icons.local_parking,
+            validator: (value) =>
+                value?.isEmpty ?? true ? 'Please enter parking name' : null,
+          ),
+          _buildInputField(
+            "Contact Person",
+            _contactPersonController,
+            Icons.person,
+            validator: (value) =>
+                value?.isEmpty ?? true ? 'Please enter contact person name' : null,
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: _buildInputField(
+                  "State",
+                  _stateController,
+                  Icons.map,
+                  validator: (value) =>
+                      value?.isEmpty ?? true ? 'Please enter state' : null,
+                ),
+              ),
+              SizedBox(width: 16),
+              Expanded(
+                child: _buildInputField(
+                  "District",
+                  _districtController,
+                  Icons.location_city,
+                  validator: (value) =>
+                      value?.isEmpty ?? true ? 'Please enter district' : null,
+                ),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: _buildInputField(
+                  "City",
+                  _cityController,
+                  Icons.location_on,
+                  validator: (value) =>
+                      value?.isEmpty ?? true ? 'Please enter city' : null,
+                ),
+              ),
+              SizedBox(width: 16),
+              Expanded(
+                child: _buildInputField(
+                  "Pincode",
+                  _pincodeController,
+                  Icons.pin_drop,
+                  keyboardType: TextInputType.number,
+                  validator: (value) =>
+                      value?.isEmpty ?? true ? 'Please enter pincode' : null,
+                ),
+              ),
+            ],
+          ),
+          _buildInputField(
+            "Phone Number",
+            _phoneController,
+            Icons.phone,
+            keyboardType: TextInputType.phone,
+            validator: (value) =>
+                value?.isEmpty ?? true ? 'Please enter phone number' : null,
+          ),
+          _buildInputField(
+            "Email",
+            _emailController,
+            Icons.email,
+            keyboardType: TextInputType.emailAddress,
+            validator: (value) =>
+                value?.isEmpty ?? true ? 'Please enter email' : null,
+          ),
+          _buildInputField(
+            "Password",
+            _passwordController,
+            Icons.lock,
+            isPassword: true,
+            validator: (value) =>
+                value?.isEmpty ?? true ? 'Please enter password' : null,
+          ),
+          _buildInputField(
+            "Address",
+            _addressController,
+            Icons.home,
+            maxLines: 3,
+            validator: (value) =>
+                value?.isEmpty ?? true ? 'Please enter address' : null,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImageUploadSection() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 16.0, bottom: 24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Upload Photo",
+            style: TextStyle(fontSize: 16, color: Colors.white),
+          ),
+          SizedBox(height: 8),
+          GestureDetector(
+            onTap: () {
+              _showImageSourceOptions();
+            },
+            child: Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(vertical: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.grey),
+              ),
+              child: Center(
+                child: _selectedImage == null
+                    ? Icon(Icons.camera_alt, color: Colors.grey, size: 40)
+                    : Image.file(_selectedImage!, height: 100, fit: BoxFit.cover),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showImageSourceOptions() {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.photo_library),
+              title: Text("Upload from Gallery"),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImage(ImageSource.gallery);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.camera_alt),
+              title: Text("Capture from Camera"),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImage(ImageSource.camera);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildInputField(
+    String label,
+    TextEditingController controller,
+    IconData icon, {
+    TextInputType? keyboardType,
+    bool isPassword = false,
+    int maxLines = 1,
+    String? Function(String?)? validator,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: TextFormField(
         controller: controller,
-        keyboardType: isNumeric ? TextInputType.number : TextInputType.text,
-        obscureText: isPassword, // Added for password fields
+        obscureText: isPassword,
         maxLines: maxLines,
+        keyboardType: keyboardType,
+        validator: validator,
         decoration: InputDecoration(
           labelText: label,
-          prefixIcon: Icon(icon, color: Colors.lightGreen[400] ?? Colors.lightGreen),
+          prefixIcon: Icon(icon, color: Colors.blue),
+          filled: true,
+          fillColor: Colors.grey[200],
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide(color: Colors.lightGreen[400] ?? Colors.lightGreen),
+            borderSide: BorderSide.none,
           ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide(color: Colors.lightGreen[700] ?? Colors.lightGreen, width: 2),
-          ),
-          filled: true,
-          fillColor: Colors.white,
-          contentPadding: EdgeInsets.symmetric(vertical: 18, horizontal: 12),
         ),
       ),
     );
   }
 
-  Future<void> _registerYardOwner(BuildContext context) async {
-    // Check if all fields are filled
-    if (_parkingNameController.text.isEmpty || 
-        _contactPersonController.text.isEmpty ||
-        _stateController.text.isEmpty ||
-        _districtController.text.isEmpty ||
-        _cityController.text.isEmpty ||
-        _pincodeController.text.isEmpty ||
-        _phoneController.text.isEmpty ||
-        _emailController.text.isEmpty ||
-        _addressController.text.isEmpty ||
-        _passwordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Please fill in all fields!'),
-          backgroundColor: Colors.red,
+  Widget _buildSubmitButton(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 24.0),
+      child: SizedBox(
+        width: double.infinity,
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            padding: EdgeInsets.symmetric(vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          onPressed: () {
+            if (_formKey.currentState!.validate()) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => OTPVerificationPage()),
+              );
+            }
+          },
+          child: Text(
+            'Register',
+            style: TextStyle(fontSize: 18),
+          ),
         ),
-      );
-      return; // Exit if validation fails
-    }
-
-    // Show a loading animation
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return Center(child: Lottie.asset('assets/car_loading.json')); // Ensure this path is correct
-      },
+      ),
     );
-  // Wait for 2 seconds before proceeding
-  await Future.delayed(Duration(seconds: 5));
+  }
 
-
-    // Prepare the data to be sent to the API
-    Map<String, String> requestData = {
-      'yardname': _parkingNameController.text.trim(),
-      'contact_person': _contactPersonController.text.trim(),
-      'state': _stateController.text.trim(),
-      'district': _districtController.text.trim(),
-      'city': _cityController.text.trim(),
-      'pincode': _pincodeController.text.trim(),
-      'phone': _phoneController.text.trim(),
-      'email': _emailController.text.trim(),
-      'address': _addressController.text.trim(),
-      'password': _passwordController.text.trim(),
-    };
-
-    try {
-      // Send POST request
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode(requestData),
-      );
-
-      // Remove loading indicator
-      Navigator.of(context).pop();
-
-      // Handle the response
-      if (response.statusCode == 201) {
-        // If successful, show success SnackBar
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Registered successfully! Now you can log in.'),
-            backgroundColor: Colors.green, // Green SnackBar for success
-          ),
-        );
-
-        // Redirect to login page after a short delay
-        Future.delayed(Duration(seconds: 0), () {
-          Navigator.pushReplacement(
+  Widget _buildLoginLink(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text("Already have an account? ", style: TextStyle(color: Colors.white)),
+        GestureDetector(
+          onTap: () => Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => LoginPage()), // Navigate to login page
-          );
-        });
-      } else {
-        // Extract and log the error message from the response
-        String errorMessage;
-        try {
-          var responseJson = json.decode(response.body);
-          errorMessage = responseJson['message'] ?? 'Registration failed! Please try again.';
-        } catch (e) {
-          errorMessage = 'Registration failed! Please try again.';
-        }
-
-        // Show error SnackBar with the actual error message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMessage),
-            backgroundColor: Colors.red, // Red SnackBar for failure
+            MaterialPageRoute(builder: (context) => LoginPage()),
           ),
-        );
-      }
-    } catch (e) {
-      Navigator.of(context).pop();
-      // Print any exceptions that might have occurred
-      print("Exception: $e");
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('An error occurred! Please try again.'),
-          backgroundColor: Colors.red, // Red SnackBar for failure
+          child: Text(
+            "Login",
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
-      );
-    }
+      ],
+    );
   }
 }
